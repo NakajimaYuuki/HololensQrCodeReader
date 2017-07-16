@@ -47,8 +47,11 @@ public class GazeGestureManager : MonoBehaviour {
     //　今はジェスチャーから呼ばれるけどいずれは音声認識も加えたい
     void GestureRecognizer_TappedEvent(InteractionSourceKind source, int tapCount, Ray headRay) {
 
+        // 既存のテキストを消すには？
+
         if (!isTest)
         {
+            //　写真を撮影した上でメソッドを呼ぶ
             photoInput.CapturePhotoAsync(onPhotoCaptured);
         }
         else
@@ -58,49 +61,58 @@ public class GazeGestureManager : MonoBehaviour {
 
         }
     }
+    // 表示している文字を消すためのクリア機能も欲しい
 
 
     // 写真撮影時のイベント
     void onPhotoCaptured(List<byte> image, int width, int height) {
 
-        Debug.Log("ここ");
+        ///　テストパターン
+        ///　①QRコードを読んでレスポンスを受け取ってそれを使う(実戦)
+        ///　②QRコードを読まずにとりあえず表示だけしてみたいとき(表示やapiの確認、unityeditor)
+        ///　③QRコードを読むけど、レスポンスは既定値(疎通的な意味で)
+        ///　④
+
         string url = "https://www.google.co.jp/";
+
+        Userinfo response = new Userinfo();
+        response.name = "ギークラボ長野";
+        response.message = "頑張ります！！";
+
+
         if (!isTest)
         {
             url = qrDecoder.Decode(image.ToArray(), width, height);
         }
 
-        if (Utility.IsUrl(url) | !Utility.IsUrl(url)) {
-            Debug.Log("ここ1");
+        if (Utility.IsUrl(url)) {
             // ここで　apiを投げる
-            var response = WebApi.GetApi(url);
-            // このレスポンスを表示する
-            // 名前と一言！
-            Vector3 headPosition = Camera.main.transform.position;
-            Vector3 gazeDirection = Camera.main.transform.forward;
-            // 名前の表示
-            showText(headPosition, gazeDirection, response.name);
+            response = WebApi.GetApi(url);
+        }
 
-            headPosition.y = headPosition.y - 0.1f;
-            //　一言の表示
-            showText(headPosition, gazeDirection, response.message);
-            //　成功音声
-            captureAudioSource.Play();
-            Debug.Log("ここ2");
-        }
-        else
-        {
-            failedAudioSource.Play();
-        }
+        // このレスポンスを表示する
+        // 名前と一言！
+        Vector3 headPosition = Camera.main.transform.position;
+        Vector3 gazeDirection = Camera.main.transform.forward;
+        // 名前の表示
+        showText(headPosition, gazeDirection, response.name);
+
+        headPosition.y = headPosition.y - 0.1f;
+        //　一言の表示
+        showText(headPosition, gazeDirection, response.message);
+        //　成功音声
+        captureAudioSource.Play();
+
+        // failedAudioSource.Play();
     }
 
 
     void showText(Vector3 headPosition, Vector3 gazeDirection, string text) {
 
-        Debug.Log(text);
+        Debug.Log(Camera.main.transform.rotation);
         RaycastHit hitInfo;
         if (Physics.Raycast(headPosition, gazeDirection, out hitInfo)) {
-            var obj = Instantiate(TextViewPrefab, hitInfo.point, Quaternion.identity);
+            var obj = Instantiate(TextViewPrefab, hitInfo.point, Camera.main.transform.rotation);
             var textMesh = obj.GetComponent<TextMesh>();
             textMesh.text = text;
         }

@@ -30,10 +30,6 @@ public class WebApi : MonoBehaviour
 
         // 通信エラーチェック
         Userinfo userinfo = new Userinfo();
-        userinfo.name = "ギークラボ長野";
-        userinfo.message = "頑張ります！！";
-
-
         if (!request.isError)
         {
             Debug.Log(request.responseCode);
@@ -42,7 +38,12 @@ public class WebApi : MonoBehaviour
                 // テストデータのときはjsonを直でセット
                 if (url != "https://www.google.co.jp/")
                 {
-                   userinfo = JsonUtility.FromJson<Userinfo>(request.downloadHandler.text);
+                    userinfo = JsonUtility.FromJson<Userinfo>(request.downloadHandler.text);
+                }
+                else {
+                    userinfo.name = "ギークラボ長野";
+                    userinfo.message = "頑張ります！！";
+
                 }
             }
         }
