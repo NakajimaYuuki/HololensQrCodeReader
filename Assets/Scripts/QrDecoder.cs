@@ -4,6 +4,13 @@ using UnityEngine;
 
 public class QrDecoder : MonoBehaviour {
 
+    /// <summary>
+    /// unityeditorではないときに処理を行う（unityからの実行はできない？）
+    /// </summary>
+    /// <param name="src"></param>
+    /// <param name="width"></param>
+    /// <param name="height"></param>
+    /// <returns></returns>
     public string Decode(byte[] src, int width, int height) {
 #if !UNITY_EDITOR
         Debug.Log("qr decoding...");
