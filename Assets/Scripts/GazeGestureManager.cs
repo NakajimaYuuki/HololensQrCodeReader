@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.VR.WSA.Input;
+using System.IO;
+
+
 
 public class GazeGestureManager : MonoBehaviour {
 
     public static GazeGestureManager Instance { get; private set; }
     public GameObject FocusedObject { get; private set; }
-    public GameObject TextViewPrefab;
     public AudioClip captureAudioClip;
     public AudioClip failedAudioClip;
 
@@ -17,10 +19,46 @@ public class GazeGestureManager : MonoBehaviour {
     QrDecoder qrDecoder;
     AudioSource captureAudioSource;
     AudioSource failedAudioSource;
-    public bool isTest;
+    private bool isTest;
+    public static int status;
+
+
+    Scouter response = new Scouter();
+    // ゲームオブジェクト
+    public GameObject plate;
+    public GameObject qrSight;
+    public GameObject qrMessage;
+    GameObject mainCamera;
+
+    public int power;
+    public GameObject textView;
+    public TextMesh textMesh;
+    public AudioSource countSe;
+
+
+
+    // ユニティちゃん
+    public GameObject unityChan;
+    private Animator unityChananime;
+    private AudioSource unityVoice; // いっくよー
+    private AudioSource unityGanabare;　//　ステージ中
+    private AudioSource unityHighscore;　//　100点以上
+    private AudioSource unityLowScore;　//　100点より下
+
+    public int Count;
+
+
+    // 外部からの書き込み用.
+    public bool IsTest
+    {
+        get { return isTest; }
+        set { isTest = value; }
+    }
+
 
 
     void Awake () {
+        /*ここで色々制御！！*/
         isTest = true;
         Instance = this;
         photoInput = GetComponent<PhotoInput>();
@@ -28,7 +66,7 @@ public class GazeGestureManager : MonoBehaviour {
         gestureRecognizer.TappedEvent += GestureRecognizer_TappedEvent;
         gestureRecognizer.StartCapturingGestures();
         qrDecoder = gameObject.AddComponent<QrDecoder>();
-	}
+    }
 
     void Start() {
         captureAudioSource = gameObject.AddComponent<AudioSource>();
@@ -37,84 +75,247 @@ public class GazeGestureManager : MonoBehaviour {
         failedAudioSource = gameObject.AddComponent<AudioSource>();
         failedAudioSource.clip = failedAudioClip;
         failedAudioSource.playOnAwake = false;
+
+
+        // 台座
+        plate.SetActive(false);
+        // カメラ
+        mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
+
+        // textview
+        textView.SetActive(false);
+        countSe = textView.GetComponent<AudioSource>();
+
+
+        // ユニティちゃん
+        unityChananime = unityChan.GetComponent<Animator>();
+        AudioSource[] audioSources = unityChan.GetComponents<AudioSource>();
+        unityVoice = audioSources[3];
+        unityGanabare = audioSources[2];
+        unityHighscore = audioSources[1];
+        unityLowScore = audioSources[0];
+
+        unityChan.SetActive(false);
+
+        SpatialMapping.Instance.DrawVisualMeshes = true;
+        Count = 0;
+        status = 0;
+        power = 0;
     }
 
     private void Update() {
+        // フラグをみてオンの時は穴の表示と文字の表示を行う
+        // status 0:最初
+        //　　　　10:撮影待機
+        //　　　　11:台座の出現
+        //　　　　12:ユニティちゃんが現れる
+        //        13:数値が上がるとともに棒も長くなっていく
+        //　　　　14.エンド処理、数値に応じてunityちゃんがポーズをとる（低いと転ぶ、高いとｲｴｲｯって感じのポーズ）
+        //　　　　0に戻る
+        if (status == 10)
+        {
+            if(plate.activeSelf == false)
+            {
+                plate.transform.localScale = new Vector3(0, 0.02f, 0);
+                plate.transform.position = new Vector3(qrMessage.transform.position.x, qrMessage.transform.position.y+0.1f, qrMessage.transform.position.z);
+                plate.transform.localEulerAngles = new Vector3(0, 0, 0);
+                if (!unityChan.GetComponent<Rigidbody>())
+                {
+                    var rigidbody1 = plate.gameObject.AddComponent<Rigidbody>();
+                    rigidbody1.collisionDetectionMode = CollisionDetectionMode.Continuous;
+                    rigidbody1.mass = 2.0f;
+                    rigidbody1.useGravity = true;
+                    rigidbody1.constraints = RigidbodyConstraints.FreezeRotation;
 
+                }
+                qrSight.SetActive(false);
+                plate.SetActive(true);
+                qrMessage.GetComponent<TextMesh>().text = "";
+                
+            }
+
+            plate.transform.localScale += new Vector3(0.001f, 0, 0.001f);
+            if (plate.transform.localScale.x >= 0.1f)
+            {
+                status++;
+            }
+        }
+        else if (status == 11)
+        {
+            // ユニティちゃんが穴から現れる
+            if (unityChan.activeSelf == false)
+            {       
+                unityChan.transform.position = new Vector3(plate.transform.position.x, plate.transform.position.y+0.02f, plate.transform.position.z);
+                unityChan.transform.localEulerAngles = new Vector3(0, mainCamera.transform.localEulerAngles.y+180, 0);
+                if (!unityChan.GetComponent<Rigidbody>())
+                {
+                    var rigidbody = unityChan.gameObject.AddComponent<Rigidbody>();
+                    rigidbody.collisionDetectionMode = CollisionDetectionMode.Continuous;
+                    rigidbody.mass = 3.0f;
+                    rigidbody.useGravity = true;
+                    rigidbody.constraints = RigidbodyConstraints.FreezeRotation |
+                                            RigidbodyConstraints.FreezePositionX|
+                                            RigidbodyConstraints.FreezePositionZ;
+                }
+                unityChan.SetActive(true);
+                // いっくよー
+                unityVoice.Play();
+            }
+            else
+            {
+                unityChananime.Play("TopToGround");
+                Count++;
+                if (Count > 100)
+                {
+                    status++;
+                    Count = 0;
+                }
+            }
+        }
+        else if (status == 12)
+        {
+            //　カウントアップする
+            if (!textView.activeSelf)
+            {
+                textView.transform.localPosition = new Vector3( unityChan.transform.position.x, unityChan.transform.position.y+0.02f, unityChan.transform.position.z);
+                textView.transform.localEulerAngles = new Vector3(mainCamera.transform.localEulerAngles.x, mainCamera.transform.localEulerAngles.y, mainCamera.transform.localEulerAngles.z);
+                textMesh = textView.GetComponent<TextMesh>();
+                textMesh.text = "0";
+                textView.SetActive(true);
+            }
+            else
+            {
+                // カウントアップしつつ上昇
+                if (response.point >= power)
+                {
+                    if (!countSe.isPlaying)
+                    {
+                        countSe.Play();
+                    }
+                    //台座がY軸方向に伸びていくので合わせて台座ちゃんも伸びていく
+                    textView.transform.localPosition = new Vector3(textView.transform.position.x, textView.transform.position.y + 0.002f, textView.transform.position.z);
+                    textMesh.text = (int.Parse(textMesh.text) + 1).ToString();
+                    plate.transform.localScale = new Vector3(plate.transform.localScale.x, plate.transform.localScale.y + 0.001f, plate.transform.localScale.z);
+                    textView.transform.localEulerAngles = new Vector3(mainCamera.transform.localEulerAngles.x, mainCamera.transform.localEulerAngles.y, mainCamera.transform.localEulerAngles.z);
+                    power = int.Parse(textMesh.text) + 1;
+                    // ランダムでセリフも
+                    if (power % 200 == 0)
+                    {
+                        unityChananime.Play("TopOfJump");
+                    }
+                    if (power % 200 == 0)
+                    {
+                        unityGanabare.Play();
+                    }
+                }
+                else
+                {
+                    countSe.Stop();
+                    status++;
+                }
+            }
+        }
+        else if (status == 13)
+        {
+            // ユニティちゃんの演出処理、+ライセンス表示+日本システム技研をよろしく！
+            if (Count == 0)
+            {
+                Count++;
+                if (power < 100)
+                {
+                    Debug.Log("ここ来てるの？");
+                    unityLowScore.Play();
+                    unityChananime.Play("KneelDown");
+                }
+                else
+                {
+                    Debug.Log("ここ来てるの2？");
+                    unityHighscore.Play();
+                    unityChananime.Play("Salute");
+                }
+            }
+            Count++;
+            if (Count >= 400)
+            {
+                status++;
+            }
+        }
+        if (status == 14)
+        {
+            // 初期化
+            status = 0;
+            textMesh.text = "";
+            power = 0;
+            Count = 0;
+            //　いろんなオブジェクトを戻す
+            qrSight.SetActive(true);
+            qrMessage.GetComponent<TextMesh>().text = "QRコードをセット！";
+            plate.SetActive(false);
+            unityChan.SetActive(false);
+            textView.SetActive(false);
+            Destroy(unityChan.GetComponent<Rigidbody>());
+            Destroy(plate.GetComponent<Rigidbody>());
+        }
     }
 
 
     //　今はジェスチャーから呼ばれるけどいずれは音声認識も加えたい
     void GestureRecognizer_TappedEvent(InteractionSourceKind source, int tapCount, Ray headRay) {
 
-        // 既存のテキストを消すには？
-
+        if (status != 0)
+        {
+            return;
+        }
         if (!isTest)
         {
             //　写真を撮影した上でメソッドを呼ぶ
-            photoInput.CapturePhotoAsync(onPhotoCaptured);
+            photoInput.CapturePhotoAsync(onPhotoCaptured);      
         }
         else
         {
             //写真撮影を行わずにurlの取得だけ行う、ダミーデータをセットする
             onPhotoCaptured(null, 0, 0);
-
         }
     }
-    // 表示している文字を消すためのクリア機能も欲しい
-
 
     // 写真撮影時のイベント
-    void onPhotoCaptured(List<byte> image, int width, int height) {
+    void onPhotoCaptured(List<byte> image, int width, int height)
+    {
 
         ///　テストパターン
         ///　①QRコードを読んでレスポンスを受け取ってそれを使う(実戦)
         ///　②QRコードを読まずにとりあえず表示だけしてみたいとき(表示やapiの確認、unityeditor)
-        ///　③QRコードを読むけど、レスポンスは既定値(疎通的な意味で)
-        ///　④
-
-        string url = "https://www.google.co.jp/";
-
-        Userinfo response = new Userinfo();
-        response.name = "ギークラボ長野";
-        response.message = "頑張ります！！";
-
-
-        if (!isTest)
+        try
         {
-            url = qrDecoder.Decode(image.ToArray(), width, height);
+            if (!isTest)
+            {
+                string url = qrDecoder.Decode(image.ToArray(), width, height);
+                response = WebApi.GetApi(url);
+            }
+            else
+            {
+                string url = "https://esap.herokuapp.com/scouterapi/ranking/5/";
+                response = WebApi.GetApi(url);
+                // Debug.Log(response);
+                /*
+                response.id = 1;
+                response.point = 150;
+                response.name = "ギークラボ長野";
+                response.is_presented = false;
+                */
+            }
+            if (response != null)
+            {
+                status = 10;
+            }
+            //　成功音声
+            // captureAudioSource.Play();
         }
-
-        if (Utility.IsUrl(url)) {
-            // ここで　apiを投げる
-            response = WebApi.GetApi(url);
-        }
-
-        // このレスポンスを表示する
-        // 名前と一言！
-        Vector3 headPosition = Camera.main.transform.position;
-        Vector3 gazeDirection = Camera.main.transform.forward;
-        // 名前の表示
-        showText(headPosition, gazeDirection, response.name);
-
-        headPosition.y = headPosition.y - 0.1f;
-        //　一言の表示
-        showText(headPosition, gazeDirection, response.message);
-        //　成功音声
-        captureAudioSource.Play();
-
-        // failedAudioSource.Play();
-    }
-
-
-    void showText(Vector3 headPosition, Vector3 gazeDirection, string text) {
-
-        Debug.Log(Camera.main.transform.rotation);
-        RaycastHit hitInfo;
-        if (Physics.Raycast(headPosition, gazeDirection, out hitInfo)) {
-            var obj = Instantiate(TextViewPrefab, hitInfo.point, Camera.main.transform.rotation);
-            var textMesh = obj.GetComponent<TextMesh>();
-            textMesh.text = text;
+        catch
+        {
+            failedAudioSource.Play();
         }
     }
+
+
 }

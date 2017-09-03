@@ -6,20 +6,20 @@ using System.Text.RegularExpressions;
 
 public class Utility : MonoBehaviour{
 
-    public static bool IsUrl(string input)
+    public static int IsUrl(string input)
     {
         if (string.IsNullOrEmpty(input))
         {
-            return false;
+            return 9;
         }
 
-        bool isUrl = Regex.IsMatch(input, @"^s?https?://[-_.!~*'()a-zA-Z0-9;/?:@&=+$,%#]+$");
+        bool isUrl = Regex.IsMatch(input, @"^s?https://esap.herokuapp.com/[-_.!~*'()a-zA-Z0-9;/?:@&=+$,%#]+$");
 
-        if (!isUrl)
+        if (isUrl)
         {
-            return Regex.IsMatch( input, @"^s?http?://[-_.!~*'()a-zA-Z0-9;/?:@&=+$,%#]+$");
-
+            return 0;
         }
-        return isUrl;
+
+        return 9;
     }
 }
