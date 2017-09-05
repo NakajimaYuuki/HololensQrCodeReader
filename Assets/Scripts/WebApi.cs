@@ -17,6 +17,7 @@ public class Scouter
 {
     public int id;
     public string name;
+    public int rank;
     public int point;
     public bool is_presented;
 }
@@ -40,7 +41,6 @@ public class WebApi : MonoBehaviour
         var scouter = new Scouter();
 
         while (!checkAsync.isDone);
-        Debug.Log(request.downloadHandler.text);
         // GazeGestureManager gazeGestureManeger = FindObjectOfType<GazeGestureManager>(); 
         scouter = JsonUtility.FromJson<Scouter>(request.downloadHandler.text);
         

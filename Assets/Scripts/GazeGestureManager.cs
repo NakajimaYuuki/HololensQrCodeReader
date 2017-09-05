@@ -26,15 +26,16 @@ public class GazeGestureManager : MonoBehaviour {
     Scouter response = new Scouter();
     // ゲームオブジェクト
     public GameObject plate;
-    public GameObject qrSight;
-    public GameObject qrMessage;
+    public GameObject wordCursor;
     GameObject mainCamera;
 
     public int power;
+    public int id;
     public GameObject textView;
     public TextMesh textMesh;
     public AudioSource countSe;
 
+    public GameObject name;
 
 
     // ユニティちゃん
@@ -96,11 +97,11 @@ public class GazeGestureManager : MonoBehaviour {
         unityLowScore = audioSources[0];
 
         unityChan.SetActive(false);
-
         SpatialMapping.Instance.DrawVisualMeshes = true;
         Count = 0;
         status = 0;
         power = 0;
+        name.SetActive(false);
     }
 
     private void Update() {
@@ -117,7 +118,7 @@ public class GazeGestureManager : MonoBehaviour {
             if(plate.activeSelf == false)
             {
                 plate.transform.localScale = new Vector3(0, 0.02f, 0);
-                plate.transform.position = new Vector3(qrMessage.transform.position.x, qrMessage.transform.position.y+0.1f, qrMessage.transform.position.z);
+                plate.transform.position = new Vector3(wordCursor.transform.position.x, wordCursor.transform.position.y+0.1f, wordCursor.transform.position.z);
                 plate.transform.localEulerAngles = new Vector3(0, 0, 0);
                 if (!unityChan.GetComponent<Rigidbody>())
                 {
@@ -128,10 +129,7 @@ public class GazeGestureManager : MonoBehaviour {
                     rigidbody1.constraints = RigidbodyConstraints.FreezeRotation;
 
                 }
-                qrSight.SetActive(false);
-                plate.SetActive(true);
-                qrMessage.GetComponent<TextMesh>().text = "";
-                
+                plate.SetActive(true);   
             }
 
             plate.transform.localScale += new Vector3(0.001f, 0, 0.001f);
@@ -145,7 +143,7 @@ public class GazeGestureManager : MonoBehaviour {
             // ユニティちゃんが穴から現れる
             if (unityChan.activeSelf == false)
             {       
-                unityChan.transform.position = new Vector3(plate.transform.position.x, plate.transform.position.y+0.02f, plate.transform.position.z);
+                unityChan.transform.position = new Vector3(plate.transform.position.x, plate.transform.position.y+0.05f, plate.transform.position.z-0.01f);
                 unityChan.transform.localEulerAngles = new Vector3(0, mainCamera.transform.localEulerAngles.y+180, 0);
                 if (!unityChan.GetComponent<Rigidbody>())
                 {
@@ -199,7 +197,7 @@ public class GazeGestureManager : MonoBehaviour {
                     textView.transform.localEulerAngles = new Vector3(mainCamera.transform.localEulerAngles.x, mainCamera.transform.localEulerAngles.y, mainCamera.transform.localEulerAngles.z);
                     power = int.Parse(textMesh.text) + 1;
                     // ランダムでセリフも
-                    if (power % 200 == 0)
+                    if (power % 100 == 0)
                     {
                         unityChananime.Play("TopOfJump");
                     }
@@ -223,36 +221,52 @@ public class GazeGestureManager : MonoBehaviour {
                 Count++;
                 if (power < 100)
                 {
-                    Debug.Log("ここ来てるの？");
                     unityLowScore.Play();
                     unityChananime.Play("KneelDown");
                 }
                 else
                 {
-                    Debug.Log("ここ来てるの2？");
                     unityHighscore.Play();
                     unityChananime.Play("Salute");
                 }
             }
             Count++;
-            if (Count >= 400)
+            if (Count >= 250)
             {
                 status++;
+                Count = 0;
             }
         }
         if (status == 14)
         {
+            // 名前と順位の表示
+            if (!name.activeSelf)
+            {
+                name.transform.localPosition = new Vector3(textView.transform.position.x, textView.transform.position.y + 0.06f, textView.transform.position.z);
+                name.transform.localEulerAngles = new Vector3(mainCamera.transform.localEulerAngles.x, mainCamera.transform.localEulerAngles.y, mainCamera.transform.localEulerAngles.z);
+                var meshName = name.GetComponent<TextMesh>();
+                meshName.characterSize = 0.08f;
+                meshName.text = response.name+"さんは現在\n"+response.rank+ "位です！";
+                name.SetActive(true);
+            }
+            Count++;
+            if (Count >= 600)
+            {
+                status++;
+                Count = 0;
+            }
+        }
+        if (status == 15)
+        {
             // 初期化
             status = 0;
-            textMesh.text = "";
             power = 0;
             Count = 0;
             //　いろんなオブジェクトを戻す
-            qrSight.SetActive(true);
-            qrMessage.GetComponent<TextMesh>().text = "QRコードをセット！";
             plate.SetActive(false);
             unityChan.SetActive(false);
             textView.SetActive(false);
+            name.SetActive(false);
             Destroy(unityChan.GetComponent<Rigidbody>());
             Destroy(plate.GetComponent<Rigidbody>());
         }
@@ -294,7 +308,7 @@ public class GazeGestureManager : MonoBehaviour {
             }
             else
             {
-                string url = "https://esap.herokuapp.com/scouterapi/ranking/5/";
+                string url = "https://esap.herokuapp.com/scouterapi/ranking/"+ id.ToString()+ "/";
                 response = WebApi.GetApi(url);
                 // Debug.Log(response);
                 /*
