@@ -36,6 +36,7 @@ public class GazeGestureManager : MonoBehaviour {
     public AudioSource countSe;
 
     public GameObject name;
+    public GameObject glnagano;
 
 
     // ユニティちゃん
@@ -45,9 +46,7 @@ public class GazeGestureManager : MonoBehaviour {
     private AudioSource unityGanabare;　//　ステージ中
     private AudioSource unityHighscore;　//　100点以上
     private AudioSource unityLowScore;　//　100点より下
-
     public int Count;
-
 
     // 外部からの書き込み用.
     public bool IsTest
@@ -102,6 +101,7 @@ public class GazeGestureManager : MonoBehaviour {
         status = 0;
         power = 0;
         name.SetActive(false);
+        
     }
 
     private void Update() {
@@ -117,9 +117,10 @@ public class GazeGestureManager : MonoBehaviour {
         {
             if(plate.activeSelf == false)
             {
-                plate.transform.localScale = new Vector3(0, 0.02f, 0);
-                plate.transform.position = new Vector3(wordCursor.transform.position.x, wordCursor.transform.position.y+0.1f, wordCursor.transform.position.z);
-                plate.transform.localEulerAngles = new Vector3(0, 0, 0);
+                plate.transform.localScale = new Vector3(0, 0, 0.2f);
+                plate.transform.position = new Vector3(wordCursor.transform.position.x, wordCursor.transform.position.y+0.4f, wordCursor.transform.position.z);
+                plate.transform.localEulerAngles = new Vector3(0, mainCamera.transform.localEulerAngles.y + 180, 0);
+                
                 if (!unityChan.GetComponent<Rigidbody>())
                 {
                     var rigidbody1 = plate.gameObject.AddComponent<Rigidbody>();
@@ -129,21 +130,23 @@ public class GazeGestureManager : MonoBehaviour {
                     rigidbody1.constraints = RigidbodyConstraints.FreezeRotation;
 
                 }
+                
                 plate.SetActive(true);   
             }
 
-            plate.transform.localScale += new Vector3(0.001f, 0, 0.001f);
-            if (plate.transform.localScale.x >= 0.1f)
+            plate.transform.localScale += new Vector3(0.001f, 0.001f, 0);
+            if (plate.transform.localScale.x >= 0.05f)
             {
                 status++;
             }
         }
         else if (status == 11)
         {
+            
             // ユニティちゃんが穴から現れる
             if (unityChan.activeSelf == false)
             {       
-                unityChan.transform.position = new Vector3(plate.transform.position.x, plate.transform.position.y+0.05f, plate.transform.position.z-0.01f);
+                unityChan.transform.position = new Vector3(plate.transform.position.x, plate.transform.position.y+0.3f, plate.transform.position.z-0.01f);
                 unityChan.transform.localEulerAngles = new Vector3(0, mainCamera.transform.localEulerAngles.y+180, 0);
                 if (!unityChan.GetComponent<Rigidbody>())
                 {
@@ -167,6 +170,7 @@ public class GazeGestureManager : MonoBehaviour {
                 {
                     status++;
                     Count = 0;
+                    Destroy(plate.GetComponent<Rigidbody>());
                 }
             }
         }
@@ -175,7 +179,7 @@ public class GazeGestureManager : MonoBehaviour {
             //　カウントアップする
             if (!textView.activeSelf)
             {
-                textView.transform.localPosition = new Vector3( unityChan.transform.position.x, unityChan.transform.position.y+0.02f, unityChan.transform.position.z);
+                textView.transform.localPosition = new Vector3( unityChan.transform.position.x, unityChan.transform.position.y+0.1f, unityChan.transform.position.z);
                 textView.transform.localEulerAngles = new Vector3(mainCamera.transform.localEulerAngles.x, mainCamera.transform.localEulerAngles.y, mainCamera.transform.localEulerAngles.z);
                 textMesh = textView.GetComponent<TextMesh>();
                 textMesh.text = "0";
@@ -193,7 +197,7 @@ public class GazeGestureManager : MonoBehaviour {
                     //台座がY軸方向に伸びていくので合わせて台座ちゃんも伸びていく
                     textView.transform.localPosition = new Vector3(textView.transform.position.x, textView.transform.position.y + 0.002f, textView.transform.position.z);
                     textMesh.text = (int.Parse(textMesh.text) + 1).ToString();
-                    plate.transform.localScale = new Vector3(plate.transform.localScale.x, plate.transform.localScale.y + 0.001f, plate.transform.localScale.z);
+                    plate.transform.localPosition = new Vector3(plate.transform.localPosition.x, plate.transform.localPosition.y + 0.002f, plate.transform.localPosition.z);
                     textView.transform.localEulerAngles = new Vector3(mainCamera.transform.localEulerAngles.x, mainCamera.transform.localEulerAngles.y, mainCamera.transform.localEulerAngles.z);
                     power = int.Parse(textMesh.text) + 1;
                     // ランダムでセリフも
@@ -257,6 +261,12 @@ public class GazeGestureManager : MonoBehaviour {
             }
         }
         if (status == 15)
+        {
+            // 上を見てください
+            status++;
+
+        }
+        if (status == 16)
         {
             // 初期化
             status = 0;
