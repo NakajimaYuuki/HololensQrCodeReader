@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using HoloToolkit.Unity.InputModule;
 
-public class GestureResponder : MonoBehaviour, IInputClickHandler
+public class GestureResponder : MonoBehaviour, InputClickHandler
 {
     private void Start()
     {

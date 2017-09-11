@@ -159,7 +159,7 @@ MonoBehaviour:
   plate: {fileID: 1758392868}
   wordCursor: {fileID: 844622021}
   power: 0
-  id: 5
+  id: 16
   textView: {fileID: 398161444}
   textMesh: {fileID: 0}
   countSe: {fileID: 0}

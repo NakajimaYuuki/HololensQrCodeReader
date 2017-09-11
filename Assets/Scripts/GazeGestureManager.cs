@@ -4,10 +4,11 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.VR.WSA.Input;
 using System.IO;
+using HoloToolkit.Unity.InputModule;
 
 
-
-public class GazeGestureManager : MonoBehaviour {
+public class GazeGestureManager : MonoBehaviour, IInputHandler
+{
 
     public static GazeGestureManager Instance { get; private set; }
     public GameObject FocusedObject { get; private set; }
@@ -63,9 +64,15 @@ public class GazeGestureManager : MonoBehaviour {
         Instance = this;
         photoInput = GetComponent<PhotoInput>();
         gestureRecognizer = new GestureRecognizer();
-        gestureRecognizer.TappedEvent += GestureRecognizer_TappedEvent;
+        gestureRecognizer.SetRecognizableGestures(GestureSettings.Tap);
+        // gestureRecognizer.TappedEvent += GestureRecognizer_TappedEvent;
         gestureRecognizer.StartCapturingGestures();
         qrDecoder = gameObject.AddComponent<QrDecoder>();
+    }
+
+    private void GestureRecognizer_TappedEvent1(InteractionSourceKind source, int tapCount, Ray headRay)
+    {
+        throw new System.NotImplementedException();
     }
 
     void Start() {
@@ -113,6 +120,15 @@ public class GazeGestureManager : MonoBehaviour {
         //        13:数値が上がるとともに棒も長くなっていく
         //　　　　14.エンド処理、数値に応じてunityちゃんがポーズをとる（低いと転ぶ、高いとｲｴｲｯって感じのポーズ）
         //　　　　0に戻る
+        if (status == 0)
+        {
+            Count++;
+            if (Count >= 400)
+            {
+                Count = 0;
+                onPhotoCaptured(null, 0, 0);
+            }
+        }
         if (status == 10)
         {
             if(plate.activeSelf == false)
@@ -195,9 +211,16 @@ public class GazeGestureManager : MonoBehaviour {
                         countSe.Play();
                     }
                     //台座がY軸方向に伸びていくので合わせて台座ちゃんも伸びていく
+                    if (int.Parse(textMesh.text) >= 500)
+                    {
+                        textMesh.text = response.point.ToString();
+                        countSe.Stop();
+                        status++;
+                    }
                     textView.transform.localPosition = new Vector3(textView.transform.position.x, textView.transform.position.y + 0.002f, textView.transform.position.z);
-                    textMesh.text = (int.Parse(textMesh.text) + 1).ToString();
                     plate.transform.localPosition = new Vector3(plate.transform.localPosition.x, plate.transform.localPosition.y + 0.002f, plate.transform.localPosition.z);
+
+                    textMesh.text = (int.Parse(textMesh.text) + 1).ToString();                    
                     textView.transform.localEulerAngles = new Vector3(mainCamera.transform.localEulerAngles.x, mainCamera.transform.localEulerAngles.y, mainCamera.transform.localEulerAngles.z);
                     power = int.Parse(textMesh.text) + 1;
                     // ランダムでセリフも
@@ -283,9 +306,26 @@ public class GazeGestureManager : MonoBehaviour {
     }
 
 
-    //　今はジェスチャーから呼ばれるけどいずれは音声認識も加えたい
-    void GestureRecognizer_TappedEvent(InteractionSourceKind source, int tapCount, Ray headRay) {
+    //public void OnInputClicked(InputClickedEventData eventData)
+    //{
+        // AirTap code goes here
+    // }
+    public void OnInputDown(InputEventData eventData)
+    { Debug.Log("ここ１"); }
+    public void OnInputUp(InputEventData eventData)
+    {
+        Debug.Log("koko2");
+    }
 
+    void OnSelect()
+    {
+        Debug.Log("kokokoko");
+    }
+        //　今はジェスチャーから呼ばれるけどいずれは音声認識も加えたい
+        void GestureRecognizer_TappedEvent(InteractionSourceKind source, int tapCount, Ray headRay)
+    // void OnInputClicked()
+    {
+        Debug.Log("ここきてる？");
         if (status != 0)
         {
             return;
@@ -330,6 +370,7 @@ public class GazeGestureManager : MonoBehaviour {
             }
             if (response != null)
             {
+                Debug.Log(response.point);
                 status = 10;
             }
             //　成功音声

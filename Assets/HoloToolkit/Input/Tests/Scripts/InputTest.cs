@@ -11,7 +11,7 @@ namespace HoloToolkit.Unity.InputModule.Tests
     /// </summary>
     public class InputTest : MonoBehaviour, 
                              IInputHandler,
-                             IInputClickHandler,
+                             InputClickHandler,
                              IFocusable, 
                              ISourceStateHandler,
                              IHoldHandler,

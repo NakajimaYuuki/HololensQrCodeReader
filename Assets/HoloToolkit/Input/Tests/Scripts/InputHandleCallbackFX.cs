@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace HoloToolkit.Unity.InputModule.Tests
 {
-    public class InputHandleCallbackFX : MonoBehaviour, IInputClickHandler
+    public class InputHandleCallbackFX : MonoBehaviour, InputClickHandler
     {
         [SerializeField]
         private ParticleSystem particles = null;

@@ -9,7 +9,7 @@ namespace HoloToolkit.Unity.InputModule.Tests
     /// This class implements IInputClickHandler to handle the tap gesture.
     /// It increases the scale of the object when tapped.
     /// </summary>
-    public class TapResponder : MonoBehaviour, IInputClickHandler
+    public class TapResponder : MonoBehaviour, InputClickHandler
     {
         public void OnInputClicked(InputEventData eventData)
         {

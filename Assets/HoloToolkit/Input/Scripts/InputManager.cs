@@ -373,8 +373,8 @@ namespace HoloToolkit.Unity.InputModule
             }
         }
 
-        private static readonly ExecuteEvents.EventFunction<IInputClickHandler> OnInputClickedEventHandler =
-            delegate (IInputClickHandler handler, BaseEventData eventData)
+        private static readonly ExecuteEvents.EventFunction<InputClickHandler> OnInputClickedEventHandler =
+            delegate (InputClickHandler handler, BaseEventData eventData)
             {
                 InputEventData casted = ExecuteEvents.ValidateEventData<InputEventData>(eventData);
                 handler.OnInputClicked(casted);

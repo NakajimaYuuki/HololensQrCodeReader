@@ -17,7 +17,7 @@ public class Scouter
 {
     public int id;
     public string name;
-    public int rank;
+    public string rank;
     public int point;
     public bool is_presented;
 }

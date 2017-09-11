@@ -9,7 +9,7 @@ namespace HoloToolkit.Unity.InputModule
     /// <summary>
     /// Very simple class that implements basic logic for a trigger button.
     /// </summary>
-    public class TriggerButton : MonoBehaviour, IInputClickHandler
+    public class TriggerButton : MonoBehaviour, InputClickHandler
     {
         /// <summary>
         /// Indicates whether the button is clickable or not.

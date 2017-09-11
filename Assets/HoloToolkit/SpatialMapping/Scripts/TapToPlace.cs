@@ -17,7 +17,7 @@ namespace HoloToolkit.Unity.SpatialMapping
     /// TapToPlace also adds a WorldAnchor component to enable persistence.
     /// </summary>
 
-    public class TapToPlace : MonoBehaviour, IInputClickHandler
+    public class TapToPlace : MonoBehaviour, InputClickHandler
     {
         [Tooltip("Supply a friendly name for the anchor as the key name for the WorldAnchorStore.")]
         public string SavedAnchorFriendlyName = "SavedAnchorFriendlyName";

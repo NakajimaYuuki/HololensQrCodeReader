@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace HoloToolkit.Unity.InputModule.Tests
 {
-    public class PopupMenu : MonoBehaviour, IInputClickHandler
+    public class PopupMenu : MonoBehaviour, InputClickHandler
     {
         [SerializeField]
         private TestButton cancelButton = null;
