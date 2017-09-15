@@ -7,7 +7,7 @@ using System.IO;
 using HoloToolkit.Unity.InputModule;
 
 
-public class GazeGestureManager : MonoBehaviour, IInputHandler
+public class GazeGestureManager : MonoBehaviour
 {
 
     public static GazeGestureManager Instance { get; private set; }
@@ -24,7 +24,7 @@ public class GazeGestureManager : MonoBehaviour, IInputHandler
     public static int status;
 
 
-    Scouter response = new Scouter();
+    Ranking response = new Ranking();
     // ゲームオブジェクト
     public GameObject plate;
     public GameObject wordCursor;
@@ -198,43 +198,45 @@ public class GazeGestureManager : MonoBehaviour, IInputHandler
                 textView.transform.localPosition = new Vector3( unityChan.transform.position.x, unityChan.transform.position.y+0.1f, unityChan.transform.position.z);
                 textView.transform.localEulerAngles = new Vector3(mainCamera.transform.localEulerAngles.x, mainCamera.transform.localEulerAngles.y, mainCamera.transform.localEulerAngles.z);
                 textMesh = textView.GetComponent<TextMesh>();
-                textMesh.text = "0";
+                textMesh.text = "300";
+                power = 300;
                 textView.SetActive(true);
             }
             else
             {
-                // カウントアップしつつ上昇
-                if (response.point >= power)
+                // カウントダウンしつつ上昇
+                if (response.rank <= power)
                 {
                     if (!countSe.isPlaying)
                     {
                         countSe.Play();
                     }
                     //台座がY軸方向に伸びていくので合わせて台座ちゃんも伸びていく
-                    if (int.Parse(textMesh.text) >= 500)
-                    {
-                        textMesh.text = response.point.ToString();
-                        countSe.Stop();
-                        status++;
-                    }
+                    // if (int.Parse(textMesh.text) <= 10)
+                    // {
+                    //     textMesh.text = response.rank.ToString();
+                    //     countSe.Stop();
+                    //     status++;
+                    // }
                     textView.transform.localPosition = new Vector3(textView.transform.position.x, textView.transform.position.y + 0.002f, textView.transform.position.z);
                     plate.transform.localPosition = new Vector3(plate.transform.localPosition.x, plate.transform.localPosition.y + 0.002f, plate.transform.localPosition.z);
 
-                    textMesh.text = (int.Parse(textMesh.text) + 1).ToString();                    
+                    textMesh.text = (int.Parse(textMesh.text) - 1).ToString();                    
                     textView.transform.localEulerAngles = new Vector3(mainCamera.transform.localEulerAngles.x, mainCamera.transform.localEulerAngles.y, mainCamera.transform.localEulerAngles.z);
-                    power = int.Parse(textMesh.text) + 1;
+                    power = int.Parse(textMesh.text) - 1;
                     // ランダムでセリフも
                     if (power % 100 == 0)
                     {
                         unityChananime.Play("TopOfJump");
                     }
-                    if (power % 200 == 0)
+                    if (power % 280 == 0)
                     {
                         unityGanabare.Play();
                     }
                 }
                 else
                 {
+                    textMesh.text = response.rank.ToString();
                     countSe.Stop();
                     status++;
                 }
@@ -246,7 +248,7 @@ public class GazeGestureManager : MonoBehaviour, IInputHandler
             if (Count == 0)
             {
                 Count++;
-                if (power < 100)
+                if (response.rank >= 4)
                 {
                     unityLowScore.Play();
                     unityChananime.Play("KneelDown");
@@ -258,7 +260,7 @@ public class GazeGestureManager : MonoBehaviour, IInputHandler
                 }
             }
             Count++;
-            if (Count >= 250)
+            if (Count >= 100)
             {
                 status++;
                 Count = 0;
@@ -273,7 +275,7 @@ public class GazeGestureManager : MonoBehaviour, IInputHandler
                 name.transform.localEulerAngles = new Vector3(mainCamera.transform.localEulerAngles.x, mainCamera.transform.localEulerAngles.y, mainCamera.transform.localEulerAngles.z);
                 var meshName = name.GetComponent<TextMesh>();
                 meshName.characterSize = 0.08f;
-                meshName.text = response.name+"さんは現在\n"+response.rank+ "位です！";
+                meshName.text = response.rank+ "等なのん！";
                 name.SetActive(true);
             }
             Count++;
@@ -306,26 +308,10 @@ public class GazeGestureManager : MonoBehaviour, IInputHandler
     }
 
 
-    //public void OnInputClicked(InputClickedEventData eventData)
-    //{
-        // AirTap code goes here
-    // }
-    public void OnInputDown(InputEventData eventData)
-    { Debug.Log("ここ１"); }
-    public void OnInputUp(InputEventData eventData)
+    //　今はジェスチャーから呼ばれるけどいずれは音声認識も加えたい
+    void GestureRecognizer_TappedEvent(InteractionSourceKind source, int tapCount, Ray headRay)
     {
-        Debug.Log("koko2");
-    }
 
-    void OnSelect()
-    {
-        Debug.Log("kokokoko");
-    }
-        //　今はジェスチャーから呼ばれるけどいずれは音声認識も加えたい
-        void GestureRecognizer_TappedEvent(InteractionSourceKind source, int tapCount, Ray headRay)
-    // void OnInputClicked()
-    {
-        Debug.Log("ここきてる？");
         if (status != 0)
         {
             return;
@@ -358,7 +344,8 @@ public class GazeGestureManager : MonoBehaviour, IInputHandler
             }
             else
             {
-                string url = "https://esap.herokuapp.com/scouterapi/ranking/"+ id.ToString()+ "/";
+                // string url = "https://kitouc-battle.herokuapp.com/mesh/lottery/";
+                string url = "https://kitouc-battle.herokuapp.com/mesh/lottery/test/";
                 response = WebApi.GetApi(url);
                 // Debug.Log(response);
                 /*
@@ -370,7 +357,7 @@ public class GazeGestureManager : MonoBehaviour, IInputHandler
             }
             if (response != null)
             {
-                Debug.Log(response.point);
+                Debug.Log(response.rank);
                 status = 10;
             }
             //　成功音声

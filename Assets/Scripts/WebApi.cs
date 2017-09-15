@@ -13,14 +13,11 @@ public class Userinfo
 }
 
 [System.Serializable]
-public class Scouter
+public class Ranking
 {
-    public int id;
-    public string name;
-    public string rank;
-    public int point;
-    public bool is_presented;
+    public int rank;
 }
+
 
 
 public class WebApi : MonoBehaviour
@@ -32,19 +29,19 @@ public class WebApi : MonoBehaviour
 
     }
 
-    public static Scouter GetApi(string url)
+    public static Ranking GetApi(string url)
     {
         // 例外が発生したらとりあえず上で何とかするのでここではキャッチしない
         UnityWebRequest request = UnityWebRequest.Get(url);
         // リクエスト送信
         AsyncOperation checkAsync = request.Send();
-        var scouter = new Scouter();
+        var rank = new Ranking();
 
         while (!checkAsync.isDone);
         // GazeGestureManager gazeGestureManeger = FindObjectOfType<GazeGestureManager>(); 
-        scouter = JsonUtility.FromJson<Scouter>(request.downloadHandler.text);
+        rank = JsonUtility.FromJson<Ranking>(request.downloadHandler.text);
         
-        return scouter;
+        return rank;
     }
 
     // Update is called once per frame
